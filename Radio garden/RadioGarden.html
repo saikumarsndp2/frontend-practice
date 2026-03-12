@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Garden Clone - WORKING</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: radial-gradient(circle, #001122 0%, #000 100%);
+            font-family: Arial, sans-serif; height: 100vh; overflow: hidden;
+            color: white;
+        }
+        
+        #main-container {
+            position: relative; width: 100%; height: 100vh;
+        }
+        
+        /* EARTH GLOBE - 2D VERSION */
+        #globe {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 500px; height: 500px; border-radius: 50%; background: 
+                radial-gradient(circle at 30% 30%, #4a90e2 0%, #2a6ab0 40%, #1a4060 70%, #000 100%);
+            cursor: grab; border: 3px solid rgba(0,255,136,0.3); box-shadow: 
+                0 0 50px rgba(0,255,136,0.5);
+            transition: transform 0.1s;
+        }
+        #globe:active { cursor: grabbing; }
+        #globe:hover { box-shadow: 0 0 80px rgba(0,255,136,0.8); }
+        
+        /* GREEN DOTS - STATIONS */
+        .station-dot {
+            position: absolute; width: 20px; height: 20px; background: #00ff88;
+            border-radius: 50%; cursor: pointer; border: 2px solid #00ff88;
+            transition: all 0.3s; box-shadow: 0 0 15px rgba(0,255,136,0.7);
+        }
+        .station-dot:hover { transform: scale(1.5); box-shadow: 0 0 25px #00ff88; }
+        
+        /* TABS */
+        .tabs { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100; }
+        .tab { 
+            display: inline-block; background: rgba(0,255,136,0.2); 
+            border: 1px solid #00ff88; color: #00ff88; padding: 12px 25px; 
+            margin: 0 5px; border-radius: 25px; cursor: pointer; transition: all 0.3s;
+        }
+        .tab.active { background: #00ff88; color: #000; }
+        
+        /* SIDEBAR */
+        #sidebar {
+            position: absolute; right: 20px; top: 80px; width: 350px; height: 500px;
+            background: rgba(0,20,20,0.95); border-radius: 20px; padding: 25px;
+            border: 2px solid rgba(0,255,136,0.5); overflow-y: auto; display: none;
+        }
+        #sidebar.active { display: block !important; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+        
+        #search-input {
+            width: 100%; padding: 15px; border: none; border-radius: 25px;
+            background: rgba(255,255,255,0.1); color: white; font-size: 16px;
+            margin-bottom: 20px; box-sizing: border-box;
+        }
+        
+        .station {
+            background: rgba(0,255,136,0.2); margin: 10px 0; padding: 15px;
+            border-radius: 15px; cursor: pointer; border-left: 4px solid #00ff88;
+            transition: all 0.2s;
+        }
+        .station:hover { background: rgba(0,255,136,0.4); transform: translateX(5px); }
+        .station-name { font-weight: bold; font-size: 16px; }
+        .station-location { color: #88ffaa; font-size: 14px; }
+        
+        /* PLAYER */
+        #player {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 450px; background: rgba(0,0,0,0.9); border-radius: 25px;
+            padding: 25px; border: 2px solid #00ff88; text-align: center;
+        }
+        #play-pause {
+            background: #00ff88; color: #000; border: none; width: 70px; height: 70px;
+            border-radius: 50%; font-size: 28px; cursor: pointer; margin: 0 25px;
+        }
+        #volume { width: 180px; margin: 0 25px; }
+        #current-station { font-size: 20px; font-weight: bold; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div id="main-container">
+        <!-- GLOBE WITH STATION DOTS -->
+        <div id="globe" draggable="false">
+            <!-- INDIA -->
+            <div class="station-dot" style="top: 35%; left: 78%;" data-station="0" title="India"></div>
+            <!-- USA -->
+            <div class="station-dot" style="top: 30%; left: 22%;" data-station="1" title="USA"></div>
+            <!-- UK -->
+            <div class="station-dot" style="top: 32%; left: 28%;" data-station="2" title="UK"></div>
+            <!-- GERMANY -->
+            <div class="station-dot" style="top: 33%; left: 32%;" data-station="3" title="Germany"></div>
+            <!-- FRANCE -->
+            <div class="station-dot" style="top: 32%; left: 30%;" data-station="4" title="France"></div>
+            <!-- BRAZIL -->
+            <div class="station-dot" style="top: 65%; left: 25%;" data-station="5" title="Brazil"></div>
+            <!-- JAPAN -->
+            <div class="station-dot" style="top: 25%; left: 85%;" data-station="6" title="Japan"></div>
+        </div>
+        
+        <!-- TABS -->
+        <div class="tabs">
+            <div class="tab active" data-tab="live">🌍 Live</div>
+            <div class="tab" data-tab="search">🔍 Search</div>
+        </div>
+        
+        <!-- SIDEBAR -->
+        <div id="sidebar">
+            <input type="text" id="search-input" placeholder="🔍 Type to search stations...">
+            <div id="content">Click green dots on globe!</div>
+        </div>
+        
+        <!-- PLAYER -->
+        <div id="player">
+            <div id="current-station">Drag globe • Click green dots</div>
+            <button id="play-pause">▶️</button>
+            <input type="range" id="volume" min="0" max="1" step="0.01" value="0.7">
+            <div style="margin-top: 15px; font-size: 14px;">
+                <span id="time">0:00</span> / <span id="duration">0:00</span>
+            </div>
+        </div>
+        
+        <audio id="player-audio" crossorigin="anonymous"></audio>
+    </div>
+
+    <script>
+        // WORKING STATIONS DATA
+        const stations = [
+            { name: "All India Radio", country: "India 🇮🇳", url: "https://prclive1.listenon.in/air" },
+            { name: "WNYC 93.9 FM", country: "USA 🇺🇸", url: "https://wnyc-c3.cdnstrm.com/wnycfm.mp3" },
+            { name: "BBC Radio 1", country: "UK 🇬🇧", url: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one" },
+            { name: "Deutsche Welle", country: "Germany 🇩🇪", url: "https://dw-dl.xstream.to/dwstream/kwshort/kwshort.mp3" },
+            { name: "Radio France", country: "France 🇫🇷", url: "https://direct.fipradio.fr/live/fip-midfi.mp3" },
+            { name: "Radio Brasil", country: "Brazil 🇧🇷", url: "https://radio-brasil.castradio.com.br:8000/stream" },
+            { name: "NHK World Radio", country: "Japan 🇯🇵", url: "https://nhkwlive-ags.akamaized.net/hls/live/2000789/nhkw_world_radio/nhkw_world_radio_master.m3u8" }
+        ];
+
+        // ELEMENTS
+        const globe = document.getElementById('globe');
+        const sidebar = document.getElementById('sidebar');
+        const content = document.getElementById('content');
+        const searchInput = document.getElementById('search-input');
+        const player = document.getElementById('player-audio');
+        const playBtn = document.getElementById('play-pause');
+        const currentStation = document.getElementById('current-station');
+        const tabs = document.querySelectorAll('.tab');
+
+        // GLOBE DRAG ROTATION
+        let isDragging = false, rotation = 0, startX = 0;
+        globe.addEventListener('mousedown', (e) => {
+            isDragging = true; startX = e.clientX; globe.style.cursor = 'grabbing';
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                rotation += (e.clientX - startX) * 0.01;
+                globe.style.transform = `translate(-50%, -50%) rotateY(${rotation}rad)`;
+                startX = e.clientX;
+            }
+        });
+        document.addEventListener('mouseup', () => {
+            isDragging = false; globe.style.cursor = 'grab';
+        });
+
+        // CLICK STATION DOTS
+        document.querySelectorAll('.station-dot').forEach(dot => {
+            dot.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const stationIndex = parseInt(dot.dataset.station);
+                showStations(stations[stationIndex].country, [stations[stationIndex]]);
+                sidebar.classList.add('active');
+                document.querySelector('.tab[data-tab="live"]').click();
+            });
+        });
+
+        // TABS
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                if (tab.dataset.tab === 'search') {
+                    sidebar.classList.add('active');
+                    searchInput.focus();
+                }
+            });
+        });
+
+        // PLAYER CONTROLS
+        playBtn.addEventListener('click', () => {
+            if (player.paused || player.ended) {
+                player.play().catch(e => {
+                    currentStation.textContent = "Stream unavailable - try another";
+                    console.log(e);
+                });
+                playBtn.textContent = '⏸️';
+            } else {
+                player.pause();
+                playBtn.textContent = '▶️';
+            }
+        });
+
+        document.getElementById('volume').addEventListener('input', (e) => {
+            player.volume = e.target.value;
+        });
+
+        player.addEventListener('timeupdate', () => {
+            document.getElementById('time').textContent = formatTime(player.currentTime);
+        });
+        player.addEventListener('loadedmetadata', () => {
+            document.getElementById('duration').textContent = formatTime(player.duration);
+        });
+
+        function formatTime(seconds) {
+            if (!seconds) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // SHOW STATIONS
+        function showStations(location, stations) {
+            content.innerHTML = `<h2 style="margin-bottom: 15px;">📻 ${location}</h2>`;
+            stations.forEach(station => {
+                const stationDiv = document.createElement('div');
+                stationDiv.className = 'station';
+                stationDiv.innerHTML = `
+                    <div class="station-name">${station.name}</div>
+                    <div class="station-location">${station.country}</div>
+                `;
+                stationDiv.addEventListener('click', () => playStation(station));
+                content.appendChild(stationDiv);
+            });
+        }
+
+        function playStation(station) {
+            currentStation.textContent = `${station.name} • ${station.country}`;
+            player.src = station.url;
+            player.play().catch(e => {
+                currentStation.textContent = 'Stream temporarily unavailable';
+            });
+            playBtn.textContent = '⏸️';
+        }
+
+        // WORKING SEARCH
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            if (query.length < 2) {
+                content.innerHTML = 'Type to search stations...';
+                return;
+            }
+            const filtered = stations.filter(s => 
+                s.name.toLowerCase().includes(query) || 
+                s.country.toLowerCase().includes(query)
+            );
+            showStations(`Search: ${query}`, filtered);
+        });
+
+        // AUTO ROTATE GLOBE
+        setInterval(() => {
+            if (!isDragging) {
+                rotation += 0.005;
+                globe.style.transform = `translate(-50%, -50%) rotateY(${rotation}rad)`;
+            }
+        }, 50);
+    </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Simple navbar -->
+  <header class="navbar">
+    <a href="index.html">Home</a>
+    <a href="register.html">Register</a>
+    <a href="login.html">Login</a>
+    <a href="profile.html" class="active">Profile</a>
+  </header>
+
+  <!-- Profile card -->
+  <main class="profile-page">
+    <div class="profile-card">
+      <div class="profile-image">
+        <!-- later you can set src from backend -->
+        <img src="https://via.placeholder.com/120" alt="Profile Photo">
+      </div>
+
+      <div class="profile-basic">
+        <h2 id="p-name">User Name</h2>
+        <p id="p-email" class="muted">user@email.com</p>
+
+        <p id="p-details-1">
+          Age: 25 | Gender: Male
+        </p>
+        <p id="p-details-2">
+          Religion: Hindu
+        </p>
+        <p id="p-details-3">
+          Location: Hyderabad | Profession: Developer
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <!-- message area for success / error -->
+  <div id="msg" class="msg-box"></div>
+
+  <script src="profile.js"></script>
+</body>
+</html>
